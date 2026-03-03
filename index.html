@@ -3,948 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>象棋对战</title>
+    <title>五子棋在線對戰</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            color: #333;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh; display: flex; justify-content: center; align-items: center;
         }
-
-        .page {
-            width: 100%;
-            min-height: 100vh;
+        .container {
+            background: rgba(255,255,255,0.95); border-radius: 20px;
+            padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            max-width: 500px; width: 90%; text-align: center;
         }
-
-        .hidden {
-            display: none !important;
+        canvas { 
+            border: 5px solid #333; border-radius: 15px; 
+            background: #f4e4bc; cursor: crosshair;
+            display: block; margin: 20px auto;
         }
-
-        /* 登录页面 */
-        .login-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 40px;
-            max-width: 400px;
-            margin: 0 auto;
+        input, button {
+            padding: 12px 20px; margin: 10px; border: none;
+            border-radius: 25px; font-size: 16px; font-family: inherit;
         }
-
-        .login-container h1 {
-            margin-bottom: 30px;
-            color: #2c3e50;
-            font-size: 28px;
+        input { border: 2px solid #ddd; width: 200px; }
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white; cursor: pointer; font-weight: bold;
         }
-
-        .login-container input {
-            width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+        button:hover { transform: scale(1.05); }
+        .status {
+            font-size: 20px; margin: 20px 0; font-weight: bold;
+            min-height: 30px;
         }
-
-        .login-container input:focus {
-            outline: none;
-            border-color: #3498db;
+        .room-info {
+            background: #e8f4f8; padding: 15px; border-radius: 10px;
+            margin: 15px 0;
         }
-
-        .login-container button {
-            width: 100%;
-            padding: 12px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
+        .code-display {
+            font-size: 32px; font-weight: bold; color: #ff6b6b;
+            letter-spacing: 8px; background: white;
+            padding: 10px; border-radius: 10px; margin: 10px 0;
         }
-
-        .login-container button:hover {
-            background: #2980b9;
+        .player {
+            display: inline-block; width: 40px; height: 40px;
+            border-radius: 50%; margin: 0 10px; font-weight: bold;
         }
-
-        /* 游戏界面 */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: relative;
-        }
-
-        .player-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        #currentPlayer {
-            font-weight: bold;
-            font-size: 18px;
-            color: #2c3e50;
-        }
-
-        .room-id {
-            background: #ecf0f1;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .menu-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background 0.3s;
-            position: relative;
-        }
-
-        .menu-btn:hover {
-            background: #ecf0f1;
-        }
-
-        .dropdown {
-            position: absolute;
-            top: 100%;
-            right: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            min-width: 150px;
-            z-index: 1000;
-            overflow: hidden;
-        }
-
-        .dropdown button {
-            display: block;
-            width: 100%;
-            padding: 12px 16px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            transition: background 0.3s;
-            font-size: 14px;
-        }
-
-        .dropdown button:hover {
-            background: #f8f9fa;
-        }
-
-        .dropdown hr {
-            margin: 5px 0;
-            border: none;
-            border-top: 1px solid #eee;
-        }
-
-        main {
-            display: flex;
-            height: calc(100vh - 80px);
-            gap: 20px;
-            padding: 20px;
-        }
-
-        .chessboard-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-
-        #chessboard {
-            border: 2px solid #333;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .chat-container {
-            width: 300px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-header {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            font-weight: bold;
-            background: #f8f9fa;
-            border-radius: 10px 10px 0 0;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            max-height: 400px;
-        }
-
-        .message {
-            margin-bottom: 10px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .message.system {
-            background: #e3f2fd;
-            color: #1976d2;
-            text-align: center;
-            font-style: italic;
-        }
-
-        .message.self {
-            background: #e8f5e8;
-            color: #2e7d32;
-            text-align: right;
-        }
-
-        .message.opponent {
-            background: #fff3e0;
-            color: #f57c00;
-        }
-
-        .chat-input {
-            display: flex;
-            padding: 15px;
-            border-top: 1px solid #eee;
-            gap: 10px;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .chat-input button {
-            padding: 8px 16px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .chat-input button:hover {
-            background: #2980b9;
-        }
-
-        /* 模态框 */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            min-width: 300px;
-        }
-
-        .modal-content h3 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        .modal-content p {
-            margin-bottom: 20px;
-            font-size: 16px;
-            color: #7f8c8d;
-        }
-
-        .modal-content input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .modal-content button {
-            margin: 0 5px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .modal-content button:first-of-type {
-            background: #3498db;
-            color: white;
-        }
-
-        .modal-content button:last-of-type {
-            background: #95a5a6;
-            color: white;
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            main {
-                flex-direction: column;
-                height: auto;
-            }
-            
-            .chat-container {
-                width: 100%;
-                height: 300px;
-            }
-            
-            .chessboard-container {
-                height: 500px;
-            }
-        }
-
-        .selected-piece {
-            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
-        }
-
-        .available-move {
-            fill: rgba(52, 152, 219, 0.3);
-            stroke: #3498db;
-            stroke-width: 2;
+        .black { background: #333; color: white; }
+        .white { background: #fff; color: #333; border: 2px solid #333; }
+        .waiting { animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
 <body>
-    <!-- 登录界面 -->
-    <div id="loginPage" class="page">
-        <div class="login-container">
-            <h1>象棋对战</h1>
-            <input type="text" id="playerName" placeholder="请输入您的姓名" maxlength="10">
-            <button onclick="enterGame()">进入游戏</button>
+    <div class="container" id="gameContainer">
+        <!-- 步驟1：設定暱稱 -->
+        <div id="step1">
+            <h2>🎮 五子棋在線對戰</h2>
+            <div>請輸入你的遊戲暱稱：</div>
+            <input type="text" id="nickname" placeholder="例如：小蓉" maxlength="10">
+            <br>
+            <button onclick="setNickname()">下一步</button>
         </div>
-    </div>
 
-    <!-- 游戏界面 -->
-    <div id="gamePage" class="page hidden">
-        <header>
-            <div class="player-info">
-                <span id="currentPlayer">玩家1</span>
-                <span id="roomId" class="room-id"></span>
+        <!-- 步驟2：設定/輸入邀請碼 -->
+        <div id="step2" style="display:none;">
+            <h2>🏠 創建/加入房間</h2>
+            <div class="room-info">
+                <div>你的暱稱：<span id="showName"></span></div>
             </div>
-            <div class="menu-btn" onclick="toggleMenu()">
-                ⋮
-                <div id="menuDropdown" class="dropdown hidden">
-                    <button onclick="createRoom()">创建房间</button>
-                    <button onclick="joinRoom()">进入房间</button>
-                    <hr>
-                    <button onclick="requestDraw()">求和</button>
-                    <button onclick="surrender()">认输</button>
-                    <button onclick="undoMove()">悔棋</button>
-                </div>
+            <button onclick="createRoom()">🎮 我要創建房間（生成邀請碼）</button>
+            <br>
+            <div style="margin: 20px 0;">
+                <span>或輸入好友邀請碼：</span>
+                <input type="text" id="inviteCode" placeholder="輸入6位邀請碼" maxlength="6" style="width:150px;">
+                <button onclick="joinRoom()">加入</button>
             </div>
-        </header>
-
-        <main>
-            <div class="chessboard-container">
-                <canvas id="chessboard" width="540" height="600"></canvas>
-            </div>
-            
-            <div class="chat-container">
-                <div class="chat-header">
-                    <span>聊天</span>
-                </div>
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message system">欢迎来到象棋对战！</div>
-                </div>
-                <div class="chat-input">
-                    <input type="text" id="chatInput" placeholder="输入消息..." maxlength="100" onkeypress="handleChatKeyPress(event)">
-                    <button onclick="sendMessage()">发送</button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- 房间创建模态框 -->
-    <div id="roomModal" class="modal hidden">
-        <div class="modal-content">
-            <h3>创建房间</h3>
-            <p id="newRoomId">房间号：</p>
-            <button onclick="copyRoomId()">复制房间号</button>
-            <button onclick="closeRoomModal()">关闭</button>
         </div>
-    </div>
 
-    <!-- 房间加入模态框 -->
-    <div id="joinModal" class="modal hidden">
-        <div class="modal-content">
-            <h3>进入房间</h3>
-            <input type="text" id="joinRoomId" placeholder="请输入房间号">
-            <button onclick="doJoinRoom()">进入</button>
-            <button onclick="closeJoinModal()">取消</button>
+        <!-- 遊戲主介面 -->
+        <div id="game" style="display:none;">
+            <div class="room-info">
+                <div>👤 玩家1：<span id="player1">等待...</span></div>
+                <div>👤 玩家2：<span id="player2">等待...</span></div>
+                <div>📱 房間號：<span class="code-display" id="roomCode"></span></div>
+            </div>
+            <div class="status" id="status">等待對方加入...</div>
+            <canvas id="board" width="450" height="450"></canvas>
+            <div>
+                <button onclick="resetGame()">🔄 重新開始</button>
+                <button onclick="copyRoomCode()">📋 分享房間</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // 游戏状态
-        const gameState = {
-            currentPlayer: '',
-            playerName: '',
-            roomId: '',
-            isHost: false,
-            chessBoard: [],
-            selectedPiece: null,
-            gameStarted: false,
-            currentTurn: 'red', // red代表红方（玩家1），black代表黑方（玩家2）
-            moveHistory: []
-        };
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+        let nickname = '';
+        let myRoomCode = '';
+        let board = [];
+        let currentPlayer = 1; // 1黑 2白
+        let gameOver = false;
+        const size = 15;
+        const cellSize = 28;
 
-        // 象棋棋子初始布局
-        const initialChessBoard = [
-            ['車', '馬', '象', '仕', '将', '仕', '象', '馬', '車'],
-            ['', '', '', '', '', '', '', '', ''],
-            ['', '砲', '', '', '', '', '', '砲', ''],
-            ['卒', '', '卒', '', '卒', '', '卒', '', '卒'],
-            ['', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', ''],
-            ['兵', '', '兵', '', '兵', '', '兵', '', '兵'],
-            ['', '炮', '', '', '', '', '', '炮', ''],
-            ['车', '马', '相', '士', '帅', '士', '相', '马', '车']
-        ];
+        // localStorage模擬房間系統
+        const rooms = JSON.parse(localStorage.getItem('wuziqi_rooms') || '{}');
 
-        // 棋子价值评估
-        const pieceValues = {
-            '将': 10000, '帅': 10000,
-            '仕': 200, '士': 200,
-            '象': 200, '相': 200,
-            '馬': 400, '马': 400,
-            '車': 900, '车': 900,
-            '砲': 450, '炮': 450,
-            '卒': 100, '兵': 100
-        };
-
-        // 初始化游戏
-        function initGame() {
-            gameState.chessBoard = JSON.parse(JSON.stringify(initialChessBoard));
-            drawChessBoard();
-            
-            // 添加示例消息
-            addChatMessage('系统', '游戏已初始化，您可以创建房间或加入房间开始对战。', 'system');
+        function setNickname() {
+            const name = document.getElementById('nickname').value.trim();
+            if (!name) return alert('請輸入暱稱！');
+            nickname = name;
+            document.getElementById('showName').textContent = name;
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
         }
 
-        // 绘制棋盘
-        function drawChessBoard() {
-            const canvas = document.getElementById('chessboard');
-            const ctx = canvas.getContext('2d');
-            const cellSize = 60;
-            
-            // 清空画布
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 设置背景色
-            ctx.fillStyle = '#f4e4c1';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // 绘制网格线
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 2;
-            
-            // 绘制横线
-            for (let i = 0; i <= 9; i++) {
-                const y = i * cellSize + 30;
-                ctx.beginPath();
-                ctx.moveTo(30, y);
-                ctx.lineTo(510, y);
-                ctx.stroke();
-            }
-            
-            // 绘制竖线
-            for (let i = 0; i <= 8; i++) {
-                const x = i * cellSize + 30;
-                ctx.beginPath();
-                ctx.moveTo(x, 30);
-                ctx.lineTo(x, 570);
-                ctx.stroke();
-            }
-            
-            // 绘制楚河汉界
-            ctx.font = 'bold 20px Arial';
-            ctx.fillStyle = '#333';
-            ctx.textAlign = 'center';
-            ctx.fillText('楚河', 270, 250);
-            ctx.fillText('汉界', 270, 350);
-            
-            // 绘制棋子
-            for (let row = 0; row < 10; row++) {
-                for (let col = 0; col < 9; col++) {
-                    const piece = gameState.chessBoard[row][col];
-                    if (piece) {
-                        drawPiece(ctx, col * cellSize + 30, row * cellSize + 30, piece, cellSize);
-                    }
-                }
-            }
-            
-            // 如果选中了棋子，高亮显示
-            if (gameState.selectedPiece) {
-                const { row, col } = gameState.selectedPiece;
-                highlightPiece(ctx, row, col, cellSize);
-            }
-        }
-
-        // 绘制棋子
-        function drawPiece(ctx, x, y, piece, size) {
-            const radius = size / 2 - 5;
-            
-            // 绘制棋子圆圈
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, 2 * Math.PI);
-            ctx.fillStyle = piece === piece.toUpperCase() ? '#2c3e50' : '#e74c3c';
-            ctx.fill();
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // 绘制棋子文字
-            ctx.fillStyle = 'white';
-            ctx.font = `bold ${radius}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(piece, x, y);
-        }
-
-        // 高亮选中的棋子
-        function highlightPiece(ctx, row, col, cellSize) {
-            const x = col * cellSize + 30;
-            const y = row * cellSize + 30;
-            const radius = cellSize / 2;
-            
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, 2 * Math.PI);
-            ctx.strokeStyle = '#3498db';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        }
-
-        // 登录功能
-        function enterGame() {
-            const name = document.getElementById('playerName').value.trim();
-            if (!name) {
-                alert('请输入姓名');
-                return;
-            }
-            
-            gameState.playerName = name;
-            gameState.currentPlayer = name;
-            
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('gamePage').classList.remove('hidden');
-            
-            document.getElementById('currentPlayer').textContent = name;
-            
-            initGame();
-            
-            // 测试：添加一些示例消息
-            setTimeout(() => {
-                addChatMessage('系统', `${name} 进入了游戏`, 'system');
-                addChatMessage('系统', '您可以点击右上角的菜单按钮创建房间或加入房间', 'system');
-            }, 500);
-        }
-
-        // 菜单功能
-        function toggleMenu() {
-            const menu = document.getElementById('menuDropdown');
-            menu.classList.toggle('hidden');
-        }
-
-        // 创建房间
         function createRoom() {
-            const roomId = generateRoomId();
-            gameState.roomId = roomId;
-            gameState.isHost = true;
-            
-            document.getElementById('newRoomId').innerHTML = `房间号：<strong>${roomId}</strong>`;
-            document.getElementById('roomModal').classList.remove('hidden');
-            document.getElementById('roomId').textContent = roomId;
-            
-            addChatMessage('系统', `您创建了房间 ${roomId}`, 'system');
-            addChatMessage('系统', '请将房间号分享给朋友，让他们点击"进入房间"加入', 'system');
-            
-            // 关闭菜单
-            document.getElementById('menuDropdown').classList.add('hidden');
-        }
-
-        // 生成房间号
-        function generateRoomId() {
-            return Math.random().toString(36).substr(2, 6).toUpperCase();
-        }
-
-        // 复制房间号
-        function copyRoomId() {
-            const roomId = gameState.roomId;
-            navigator.clipboard.writeText(roomId).then(() => {
-                alert('房间号已复制到剪贴板');
-            }).catch(err => {
-                console.error('复制失败:', err);
-                // 备用方案
-                const textArea = document.createElement('textarea');
-                textArea.value = roomId;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                alert('房间号已复制');
-            });
-        }
-
-        // 进入房间
-        function joinRoom() {
-            document.getElementById('joinModal').classList.remove('hidden');
-            document.getElementById('menuDropdown').classList.add('hidden');
-        }
-
-        // 执行进入房间
-        function doJoinRoom() {
-            const roomId = document.getElementById('joinRoomId').value.trim();
-            if (!roomId) {
-                alert('请输入房间号');
-                return;
-            }
-            
-            gameState.roomId = roomId;
-            gameState.isHost = false;
-            
-            document.getElementById('joinModal').classList.add('hidden');
-            document.getElementById('roomId').textContent = roomId;
-            
-            addChatMessage('系统', `您加入了房间 ${roomId}`, 'system');
-            addChatMessage('系统', '等待房主开始游戏...', 'system');
-            
-            // 清空输入框
-            document.getElementById('joinRoomId').value = '';
-        }
-
-        // 关闭房间模态框
-        function closeRoomModal() {
-            document.getElementById('roomModal').classList.add('hidden');
-        }
-
-        // 关闭加入模态框
-        function closeJoinModal() {
-            document.getElementById('joinModal').classList.add('hidden');
-            document.getElementById('joinRoomId').value = '';
-        }
-
-        // 求和功能
-        function requestDraw() {
-            if (confirm('确定要请求求和吗？')) {
-                addChatMessage(gameState.playerName, '请求求和', 'self');
-                addChatMessage('系统', `${gameState.playerName} 请求求和，等待对方回应...`, 'system');
-                alert('求和请求已发送，等待对方回应');
-                document.getElementById('menuDropdown').classList.add('hidden');
-            }
-        }
-
-        // 认输功能
-        function surrender() {
-            if (confirm('确定要认输吗？')) {
-                addChatMessage(gameState.playerName, '认输了', 'self');
-                addChatMessage('系统', `${gameState.playerName} 认输了，游戏结束！`, 'system');
-                alert('您认输了，游戏结束！');
-                document.getElementById('menuDropdown').classList.add('hidden');
-                // 重置游戏
-                initGame();
-            }
-        }
-
-        // 悔棋功能
-        function undoMove() {
-            if (gameState.moveHistory.length === 0) {
-                alert('没有可以悔棋的步数');
-                return;
-            }
-            
-            if (confirm('确定要悔棋吗？')) {
-                const lastMove = gameState.moveHistory.pop();
-                gameState.chessBoard[lastMove.fromRow][lastMove.fromCol] = lastMove.piece;
-                gameState.chessBoard[lastMove.toRow][lastMove.toCol] = lastMove.captured || '';
-                gameState.currentTurn = gameState.currentTurn === 'red' ? 'black' : 'red';
-                
-                drawChessBoard();
-                addChatMessage(gameState.playerName, '请求悔棋', 'self');
-                addChatMessage('系统', `${gameState.playerName} 悔棋了`, 'system');
-                document.getElementById('menuDropdown').classList.add('hidden');
-            }
-        }
-
-        // 聊天功能
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            addChatMessage(gameState.playerName, message, 'self');
-            input.value = '';
-            
-            // 模拟对手回复（测试用）
-            setTimeout(() => {
-                if (gameState.roomId && Math.random() > 0.5) {
-                    const replies = [
-                        '好棋！',
-                        '这步不错',
-                        '等等，让我想想',
-                        '该你了',
-                        '将军！'
-                    ];
-                    const reply = replies[Math.floor(Math.random() * replies.length)];
-                    addChatMessage('对手', reply, 'opponent');
-                }
-            }, 1000);
-        }
-
-        // 处理聊天回车键
-        function handleChatKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        }
-
-        // 添加聊天消息
-        function addChatMessage(sender, message, type) {
-            const chatMessages = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            
-            const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-            messageDiv.innerHTML = `<strong>${sender}</strong> [${time}]: ${message}`;
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // 棋盘点击事件
-        document.getElementById('chessboard').addEventListener('click', function(e) {
-            if (!gameState.gameStarted && gameState.roomId) {
-                // 如果有房间但没有开始游戏，提示创建房间
-                if (!gameState.isHost) {
-                    alert('请等待房主开始游戏');
-                    return;
-                } else {
-                    gameState.gameStarted = true;
-                    addChatMessage('系统', '游戏开始！红方先行。', 'system');
-                }
-            }
-            
-            const rect = this.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const col = Math.floor((x - 30) / 60);
-            const row = Math.floor((y - 30) / 60);
-            
-            if (row >= 0 && row < 10 && col >= 0 && col < 9) {
-                handleChessClick(row, col);
-            }
-        });
-
-        // 处理棋盘点击
-        function handleChessClick(row, col) {
-            const piece = gameState.chessBoard[row][col];
-            
-            if (gameState.selectedPiece) {
-                // 尝试移动棋子
-                if (tryMovePiece(gameState.selectedPiece.row, gameState.selectedPiece.col, row, col)) {
-                    gameState.selectedPiece = null;
-                    drawChessBoard();
-                } else {
-                    // 如果不是有效的移动，重新选择
-                    gameState.selectedPiece = { row, col };
-                    drawChessBoard();
-                }
-            } else if (piece) {
-                // 检查是否可以操作该棋子
-                if (canControlPiece(piece)) {
-                    gameState.selectedPiece = { row, col };
-                    drawChessBoard();
-                }
-            }
-        }
-
-        // 检查是否可以控制该棋子
-        function canControlPiece(piece) {
-            // 红方控制大写字母（黑棋），黑方控制小写字母（红棋）
-            if (gameState.currentTurn === 'red') {
-                return piece === piece.toUpperCase(); // 红方控制大写
-            } else {
-                return piece === piece.toLowerCase(); // 黑方控制小写
-            }
-        }
-
-        // 尝试移动棋子
-        function tryMovePiece(fromRow, fromCol, toRow, toCol) {
-            const piece = gameState.chessBoard[fromRow][fromCol];
-            const targetPiece = gameState.chessBoard[toRow][toCol];
-            
-            // 检查目标位置是否有己方棋子
-            if (targetPiece && canControlPiece(targetPiece)) {
-                return false; // 不能吃自己的棋子
-            }
-            
-            // 检查移动规则（简化版，只检查基本规则）
-            if (!isValidMove(piece, fromRow, fromCol, toRow, toCol)) {
-                return false;
-            }
-            
-            // 记录移动历史
-            gameState.moveHistory.push({
-                piece: piece,
-                fromRow: fromRow,
-                fromCol: fromCol,
-                toRow: toRow,
-                toCol: toCol,
-                captured: targetPiece || ''
-            });
-            
-            // 执行移动
-            gameState.chessBoard[toRow][toCol] = piece;
-            gameState.chessBoard[fromRow][fromCol] = '';
-            
-            // 切换回合
-            gameState.currentTurn = gameState.currentTurn === 'red' ? 'black' : 'red';
-            
-            // 添加聊天记录
-            const pieceName = getPieceName(piece);
-            const fromPos = `${String.fromCharCode(65 + fromCol)}${fromRow + 1}`;
-            const toPos = `${String.fromCharCode(65 + toCol)}${toRow + 1}`;
-            
-            if (targetPiece) {
-                addChatMessage('系统', `${pieceName} 从 ${fromPos} 移动到 ${toPos}，吃掉了 ${getPieceName(targetPiece)}`, 'system');
-            } else {
-                addChatMessage('系统', `${pieceName} 从 ${fromPos} 移动到 ${toPos}`, 'system');
-            }
-            
-            return true;
-        }
-
-        // 检查移动是否有效（简化版）
-        function isValidMove(piece, fromRow, fromCol, toRow, toCol) {
-            const rowDiff = Math.abs(toRow - fromRow);
-            const colDiff = Math.abs(toCol - fromCol);
-            
-            switch(piece) {
-                case '車': case '车': // 车
-                    return (rowDiff === 0 && colDiff > 0) || (colDiff === 0 && rowDiff > 0);
-                    
-                case '馬': case '马': // 马
-                    return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
-                    
-                case '砲': case '炮': // 炮
-                    return (rowDiff === 0 && colDiff > 0) || (colDiff === 0 && rowDiff > 0);
-                    
-                case '卒': case '兵': // 兵/卒
-                    if (piece === '卒') { // 黑卒（红方）
-                        if (fromRow >= 5) { // 过河前
-                            return toRow === fromRow + 1 && toCol === fromCol;
-                        } else { // 过河后
-                            return (toRow === fromRow + 1 && toCol === fromCol) || 
-                                   (toRow === fromRow && Math.abs(toCol - fromCol) === 1);
-                        }
-                    } else { // 红兵（黑方）
-                        if (fromRow <= 4) { // 过河前
-                            return toRow === fromRow - 1 && toCol === fromCol;
-                        } else { // 过河后
-                            return (toRow === fromRow - 1 && toCol === fromCol) || 
-                                   (toRow === fromRow && Math.abs(toCol - fromCol) === 1);
-                        }
-                    }
-                    
-                default:
-                    return true; // 其他棋子暂时允许移动
-            }
-        }
-
-        // 获取棋子名称
-        function getPieceName(piece) {
-            const names = {
-                '将': '黑将', '帅': '红帅',
-                '仕': '黑仕', '士': '红士',
-                '象': '黑象', '相': '红相',
-                '馬': '黑马', '马': '红马',
-                '車': '黑车', '车': '红车',
-                '砲': '黑炮', '炮': '红炮',
-                '卒': '黑卒', '兵': '红兵'
+            myRoomCode = 'WUZ' + Math.random().toString(36).substr(2,3).toUpperCase();
+            rooms[myRoomCode] = {
+                player1: nickname,
+                player2: null,
+                board: Array(size).fill().map(() => Array(size).fill(0)),
+                turn: 1
             };
-            return names[piece] || piece;
+            localStorage.setItem('wuziqi_rooms', JSON.stringify(rooms));
+            
+            document.getElementById('player1').textContent = nickname;
+            document.getElementById('player2').textContent = '等待對方...';
+            document.getElementById('roomCode').textContent = myRoomCode;
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('status').textContent = '把房間號發給朋友，一起開戰！';
+            initBoard(myRoomCode);
         }
 
-        // 点击其他地方关闭菜单
-        document.addEventListener('click', function(e) {
-            const menuBtn = document.querySelector('.menu-btn');
-            const dropdown = document.getElementById('menuDropdown');
+        function joinRoom() {
+            const code = document.getElementById('inviteCode').value.toUpperCase();
+            if (!rooms[code] || rooms[code].player2) {
+                return alert('無效或已滿的房間！');
+            }
+            rooms[code].player2 = nickname;
+            localStorage.setItem('wuziqi_rooms', JSON.stringify(rooms));
             
-            if (!menuBtn.contains(e.target) && dropdown && !dropdown.contains(e.target)) {
-                dropdown.classList.add('hidden');
+            myRoomCode = code;
+            document.getElementById('player1').textContent = rooms[code].player1;
+            document.getElementById('player2').textContent = nickname;
+            document.getElementById('roomCode').textContent = code;
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('status').textContent = '遊戲開始！';
+            initBoard(code);
+        }
+
+        function initBoard(roomCode) {
+            board = rooms[roomCode].board;
+            currentPlayer = rooms[roomCode].turn;
+            drawBoard();
+            updateStatus();
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i <= size; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * cellSize + 12, 12);
+                ctx.lineTo(i * cellSize + 12, 438);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(12, i * cellSize + 12);
+                ctx.lineTo(438, i * cellSize + 12);
+                ctx.stroke();
             }
             
-            // 关闭模态框
-            const roomModal = document.getElementById('roomModal');
-            const joinModal = document.getElementById('joinModal');
-            
-            if (roomModal && !roomModal.classList.contains('hidden')) {
-                if (e.target === roomModal) {
-                    closeRoomModal();
+            for (let x = 0; x < size; x++) {
+                for (let y = 0; y < size; y++) {
+                    if (board[x][y]) drawPiece(x, y, board[x][y]);
                 }
             }
+        }
+
+        function drawPiece(x, y, player) {
+            const px = x * cellSize + 24;
+            const py = y * cellSize + 24;
+            ctx.beginPath();
+            ctx.arc(px, py, 11, 0, Math.PI * 2);
+            ctx.fillStyle = player === 1 ? '#333' : '#fff';
+            ctx.fill();
+            ctx.strokeStyle = player === 1 ? '#fff' : '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        canvas.addEventListener('click', (e) => {
+            if (gameOver) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left - 12) / cellSize);
+            const y = Math.floor((e.clientY - rect.top - 12) / cellSize);
             
-            if (joinModal && !joinModal.classList.contains('hidden')) {
-                if (e.target === joinModal) {
-                    closeJoinModal();
+            if (x >= 0 && x < size && y >= 0 && y < size && board[x][y] === 0) {
+                board[x][y] = currentPlayer;
+                drawBoard();
+                
+                if (checkWin(x, y)) {
+                    const winner = currentPlayer === 1 ? '黑子' : '白子';
+                    document.getElementById('status').innerHTML = `🎉 ${winner} 勝利！`;
+                    gameOver = true;
+                    return;
                 }
+                
+                currentPlayer = 3 - currentPlayer;
+                rooms[myRoomCode].board = board;
+                rooms[myRoomCode].turn = currentPlayer;
+                localStorage.setItem('wuziqi_rooms', JSON.stringify(rooms));
+                updateStatus();
             }
         });
 
-        // 页面加载时初始化
-        window.onload = function() {
-            // 添加欢迎消息
-            addChatMessage('系统', '欢迎使用象棋对战！请先在左侧输入姓名进入游戏。', 'system');
-        };
+        function checkWin(x, y) {
+            const directions = [[1,0],[0,1],[1,1],[1,-1]];
+            for (let [dx, dy] of directions) {
+                let count = 1;
+                for (let i = 1; i < 5; i++) {
+                    let nx = x + dx * i, ny = 2 * dy * i;
+                    if (nx < 0 || nx >= size || ny < 0 || ny >= size || board[nx][ny] !== currentPlayer) break;
+                    count++;
+                }
+                for (let i = 1; i < 5; i++) {
+                    let nx = x - dx * i, ny = y - dy * i;
+                    if (nx < 0 || nx >= size || ny < 0 || ny >= size || board[nx][ny] !== currentPlayer) break;
+                    count++;
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+
+        function updateStatus() {
+            const p1El = document.getElementById('player1');
+            const p2El = document.getElementById('player2');
+            p1El.className = currentPlayer === 1 ? 'player black waiting' : 'player black';
+            p2El.className = currentPlayer === 2 ? 'player white waiting' : 'player white';
+            document.getElementById('status').textContent = `輪到 ${currentPlayer === 1 ? '黑子' : '白子'}`;
+        }
+
+        function resetGame() {
+            board = Array(size).fill().map(() => Array(size).fill(0));
+            currentPlayer = 1;
+            gameOver = false;
+            rooms[myRoomCode].board = board;
+            rooms[myRoomCode].turn = 1;
+            localStorage.setItem('wuziqi_rooms', JSON.stringify(rooms));
+            initBoard(myRoomCode);
+        }
+
+        function copyRoomCode() {
+            navigator.clipboard.writeText(`${window.location.href} (${myRoomCode})`).then(() => {
+                alert('房間連結已複製！直接發給朋友～');
+            });
+        }
+
+        // 每秒同步房間狀態
+        setInterval(() => {
+            if (myRoomCode && rooms[myRoomCode]) {
+                board = rooms[myRoomCode].board;
+                currentPlayer = rooms[myRoomCode].turn;
+                drawBoard();
+                updateStatus();
+            }
+        }, 1000);
     </script>
 </body>
 </html>
